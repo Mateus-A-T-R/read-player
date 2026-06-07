@@ -6,6 +6,7 @@ primary_region = "gru"
 [env]
   PORT = "8080"
   DATABASE_URL = "sqlite:////data/readplayer.db"
+  UPLOAD_DIR = "/data/uploads"
 
 [http_service]
   internal_port = 8080
