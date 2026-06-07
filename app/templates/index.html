@@ -2,16 +2,28 @@
 {% block title %}Home — Read Player{% endblock %}
 
 {% block content %}
-<h1>Read Player</h1>
-<p>Selecione um livro para começar a ler.</p>
+<h1>Bem-vindo</h1>
 
-{% if books %}
-  <ul>
-    {% for book in books %}
-      <li><a href="/reader/{{ book.id }}">{{ book.title }}</a> {% if book.author %}— {{ book.author }}{% endif %}</li>
-    {% endfor %}
-  </ul>
-{% else %}
-  <p>Nenhum livro na biblioteca. <a href="/library">Adicionar livro</a>.</p>
-{% endif %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value">{{ total_texts }}</div>
+    <div class="stat-label">Textos</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ total_words }}</div>
+    <div class="stat-label">Palavras salvas</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ total_known }}</div>
+    <div class="stat-label">Conhecidas</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ total_clicks }}</div>
+    <div class="stat-label">Cliques</div>
+  </div>
+</div>
+
+<a href="/library">
+  <button>Ir para a biblioteca</button>
+</a>
 {% endblock %}

@@ -5,33 +5,74 @@
 <h1>Vocabulário</h1>
 
 {% if entries %}
-  <table>
-    <thead>
-      <tr>
-        <th>Palavra</th>
-        <th>Tradução</th>
-        <th>Contexto</th>
-        <th>Livro</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for entry in entries %}
-        <tr>
-          <td>{{ entry.word }}</td>
-          <td>{{ entry.translation }}</td>
-          <td>{{ entry.context or "—" }}</td>
-          <td>{{ entry.book.title if entry.book else "—" }}</td>
-          <td>
-            <form method="post" action="/vocabulary/delete/{{ entry.id }}">
-              <button type="submit">Remover</button>
-            </form>
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div id="vocab-list">
+    {% for entry in entries %}
+      <div class="vocab-card" id="card-{{ entry.id }}"
+           data-word="{{ entry.word }}"
+           data-translation="{{ entry.translation or '' }}">
+
+        <div class="vocab-top">
+          <span class="vocab-word">{{ entry.word }}</span>
+          <span class="vocab-status status-{{ entry.status }}">{{ entry.status }}</span>
+          <span class="vocab-clicks">{{ entry.click_count }} clique{{ 's' if entry.click_count != 1 }}</span>
+        </div>
+
+        <div class="vocab-translation" style="display:none">
+          {{ entry.translation or "—" }}
+        </div>
+
+        <div class="vocab-actions">
+          <button class="btn-reveal">Revelar tradução</button>
+
+          {% if entry.status != 'known' %}
+            <button class="btn-known">Marcar como conhecida</button>
+          {% endif %}
+
+          <form method="post" action="/vocabulary/delete/{{ entry.id }}" style="display:inline">
+            <button type="submit" class="btn-remove">Remover</button>
+          </form>
+        </div>
+
+      </div>
+    {% endfor %}
+  </div>
 {% else %}
   <p>Nenhuma palavra salva ainda.</p>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll(".btn-reveal").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const card = btn.closest(".vocab-card");
+    const translation = card.querySelector(".vocab-translation");
+    const visible = translation.style.display !== "none";
+    translation.style.display = visible ? "none" : "block";
+    btn.textContent = visible ? "Revelar tradução" : "Ocultar tradução";
+  });
+});
+
+document.querySelectorAll(".btn-known").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const card = btn.closest(".vocab-card");
+    const word = card.dataset.word;
+    const translation = card.dataset.translation;
+
+    const res = await fetch("/vocabulary/api/known", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ word, translation }),
+    });
+
+    if (res.ok) {
+      const badge = card.querySelector(".vocab-status");
+      badge.textContent = "known";
+      badge.className = "vocab-status status-known";
+      btn.textContent = "Conhecida ✓";
+      btn.disabled = true;
+    }
+  });
+});
+</script>
 {% endblock %}

@@ -1,41 +1,84 @@
-const readerEl = document.getElementById("reader-text");
-const tooltip = document.getElementById("tooltip");
-const tooltipWord = document.getElementById("tooltip-word");
-const tooltipTranslation = document.getElementById("tooltip-translation");
-const bookId = readerEl ? parseInt(readerEl.dataset.bookId) : null;
+const popup = document.getElementById("popup");
+const popupWord = document.getElementById("popup-word");
+const popupTranslation = document.getElementById("popup-translation");
+const btnSave = document.getElementById("btn-save");
+const btnKnown = document.getElementById("btn-known");
 
-document.addEventListener("mouseup", async () => {
-  const selection = window.getSelection();
-  const word = selection.toString().trim();
+let currentWord = "";
+let currentTranslation = "";
 
-  if (!word || word.includes(" ") || !readerEl) {
-    tooltip.style.display = "none";
-    return;
-  }
+function cleanWord(token) {
+  return token.replace(/[^a-zA-ZÀ-ÿ'-]/g, "").toLowerCase();
+}
 
-  const range = selection.getRangeAt(0);
-  const rect = range.getBoundingClientRect();
-  const context = selection.anchorNode?.parentElement?.closest("p")?.textContent || "";
+function positionAbove(span) {
+  popup.style.visibility = "hidden";
+  popup.style.display = "block";
 
-  const res = await fetch("/reader/translate", {
+  const spanRect = span.getBoundingClientRect();
+  const popupHeight = popup.offsetHeight;
+
+  popup.style.top = `${spanRect.top + window.scrollY - popupHeight - 8}px`;
+  popup.style.left = `${spanRect.left + window.scrollX}px`;
+  popup.style.visibility = "visible";
+}
+
+function feedback(btn, message) {
+  const original = btn.textContent;
+  btn.textContent = message;
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = original;
+    btn.disabled = false;
+  }, 1500);
+}
+
+async function postVocabulary(endpoint) {
+  const res = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ word, book_id: bookId, context }),
+    body: JSON.stringify({ word: currentWord, translation: currentTranslation }),
   });
+  return res.ok;
+}
 
+document.getElementById("reader-text").addEventListener("click", async (e) => {
+  const span = e.target.closest(".word");
+  if (!span) return;
+
+  const word = cleanWord(span.textContent);
+  if (!word) return;
+
+  const res = await fetch(`/reader/api/translate?word=${encodeURIComponent(word)}`);
   if (!res.ok) return;
 
   const data = await res.json();
-  tooltipWord.textContent = data.word;
-  tooltipTranslation.textContent = data.translation;
+  currentWord = data.word;
+  currentTranslation = data.translation;
 
-  tooltip.style.display = "block";
-  tooltip.style.left = `${rect.left + window.scrollX}px`;
-  tooltip.style.top = `${rect.bottom + window.scrollY + 6}px`;
+  popupWord.textContent = data.word;
+  popupTranslation.textContent = data.translation;
+
+  positionAbove(span);
 });
 
-document.addEventListener("mousedown", (e) => {
-  if (!tooltip.contains(e.target)) {
-    tooltip.style.display = "none";
+btnSave.addEventListener("click", async () => {
+  const ok = await postVocabulary("/vocabulary/api/save");
+  feedback(btnSave, ok ? "Salvo ✓" : "Erro");
+});
+
+btnKnown.addEventListener("click", async () => {
+  const ok = await postVocabulary("/vocabulary/api/known");
+  if (ok) {
+    feedback(btnKnown, "Conhecida ✓");
+    setTimeout(() => { popup.style.display = "none"; }, 1000);
+  } else {
+    feedback(btnKnown, "Erro");
+  }
+});
+
+document.addEventListener("click", (e) => {
+  if (!popup.contains(e.target) && !e.target.closest(".word")) {
+    popup.style.display = "none";
   }
 });

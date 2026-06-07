@@ -1,45 +1,51 @@
-from fastapi import APIRouter, Request, Depends, Form
+import io
+
+from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from pypdf import PdfReader
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Book
+from app.models import TextModel
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 
-@router.get("/", response_class=HTMLResponse)
-def index(request: Request, db: Session = Depends(get_db)):
-    books = db.query(Book).all()
-    return templates.TemplateResponse(request, "index.html", {"books": books})
-
-
 @router.get("/library", response_class=HTMLResponse)
 def library(request: Request, db: Session = Depends(get_db)):
-    books = db.query(Book).all()
-    return templates.TemplateResponse(request, "library.html", {"books": books})
+    texts = db.query(TextModel).order_by(TextModel.created_at.desc()).all()
+    return templates.TemplateResponse(request, "library.html", {"texts": texts})
 
 
 @router.post("/library/add")
-def add_book(
+async def add_text(
     title: str = Form(...),
-    author: str = Form(""),
-    language: str = Form("en"),
-    content: str = Form(...),
+    content: str = Form(""),
+    file: UploadFile = File(None),
     db: Session = Depends(get_db),
 ):
-    book = Book(title=title, author=author, language=language, content=content)
-    db.add(book)
+    if file and file.filename:
+        raw = await file.read()
+        if file.filename.lower().endswith(".pdf"):
+            reader = PdfReader(io.BytesIO(raw))
+            content = "\n\n".join(
+                page.extract_text() or "" for page in reader.pages
+            )
+        else:
+            content = raw.decode("utf-8")
+
+    text = TextModel(title=title, content=content)
+    db.add(text)
     db.commit()
     return RedirectResponse("/library", status_code=303)
 
 
-@router.post("/library/delete/{book_id}")
-def delete_book(book_id: int, db: Session = Depends(get_db)):
-    book = db.query(Book).filter(Book.id == book_id).first()
-    if book:
-        db.delete(book)
+@router.post("/library/delete/{text_id}")
+def delete_text(text_id: int, db: Session = Depends(get_db)):
+    text = db.query(TextModel).filter(TextModel.id == text_id).first()
+    if text:
+        db.delete(text)
         db.commit()
     return RedirectResponse("/library", status_code=303)

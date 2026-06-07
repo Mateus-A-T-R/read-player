@@ -4,33 +4,42 @@
 {% block content %}
 <h1>Biblioteca</h1>
 
-<form method="post" action="/library/add">
-  <input type="text" name="title" placeholder="Título" required>
-  <input type="text" name="author" placeholder="Autor">
-  <select name="language">
-    <option value="en">Inglês</option>
-    <option value="es">Espanhol</option>
-    <option value="fr">Francês</option>
-  </select>
-  <textarea name="content" placeholder="Cole o texto aqui..." required></textarea>
-  <button type="submit">Adicionar</button>
-</form>
+<div class="card" style="margin-bottom: 32px">
+  <form method="post" action="/library/add" enctype="multipart/form-data">
+    <div>
+      <label for="title">Título</label>
+      <input type="text" id="title" name="title" placeholder="Título do texto" required>
+    </div>
+    <div>
+      <label for="file">Arquivo .txt (opcional)</label>
+      <input type="file" id="file" name="file" accept=".txt,.pdf">
+    </div>
+    <div>
+      <label for="content">Ou cole o texto aqui</label>
+      <textarea id="content" name="content" placeholder="Cole o conteúdo do texto..."></textarea>
+    </div>
+    <button type="submit">Salvar texto</button>
+  </form>
+</div>
 
-<hr>
-
-{% if books %}
-  <ul>
-    {% for book in books %}
-      <li>
-        <a href="/reader/{{ book.id }}">{{ book.title }}</a>
-        {% if book.author %} — {{ book.author }}{% endif %}
-        <form method="post" action="/library/delete/{{ book.id }}" style="display:inline">
-          <button type="submit">Remover</button>
-        </form>
-      </li>
+{% if texts %}
+  <div id="text-list">
+    {% for text in texts %}
+      <div class="text-item">
+        <div>
+          <a href="/reader/{{ text.id }}">{{ text.title }}</a>
+          <small>{{ text.created_at.strftime("%d/%m/%Y") }}</small>
+        </div>
+        <div class="text-item-actions">
+          <a href="/reader/{{ text.id }}"><button class="btn-secondary">Ler</button></a>
+          <form method="post" action="/library/delete/{{ text.id }}">
+            <button type="submit" class="btn-remove">Remover</button>
+          </form>
+        </div>
+      </div>
     {% endfor %}
-  </ul>
+  </div>
 {% else %}
-  <p>Nenhum livro ainda.</p>
+  <p>Nenhum texto cadastrado. Adicione um acima.</p>
 {% endif %}
 {% endblock %}
