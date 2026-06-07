@@ -6,6 +6,13 @@ const btnKnown = document.getElementById("btn-known");
 
 let currentWord = "";
 let currentTranslation = "";
+let activeSpan = null;
+
+function setActiveSpan(span) {
+  if (activeSpan) activeSpan.classList.remove("word-active");
+  activeSpan = span;
+  if (span) span.classList.add("word-active");
+}
 
 function cleanWord(token) {
   return token.replace(/[^a-zA-ZÀ-ÿ'-]/g, "").toLowerCase();
@@ -49,6 +56,8 @@ document.getElementById("reader-text").addEventListener("click", async (e) => {
   const word = cleanWord(span.textContent);
   if (!word) return;
 
+  setActiveSpan(span);
+
   const res = await fetch(`/reader/api/translate?word=${encodeURIComponent(word)}`);
   if (!res.ok) return;
 
@@ -80,5 +89,6 @@ btnKnown.addEventListener("click", async () => {
 document.addEventListener("click", (e) => {
   if (!popup.contains(e.target) && !e.target.closest(".word")) {
     popup.style.display = "none";
+    setActiveSpan(null);
   }
 });
