@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Vocabulário — Read Player{% endblock %}
+
+{% block content %}
+<h1>Vocabulário</h1>
+
+{% if entries %}
+  <table>
+    <thead>
+      <tr>
+        <th>Palavra</th>
+        <th>Tradução</th>
+        <th>Contexto</th>
+        <th>Livro</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in entries %}
+        <tr>
+          <td>{{ entry.word }}</td>
+          <td>{{ entry.translation }}</td>
+          <td>{{ entry.context or "—" }}</td>
+          <td>{{ entry.book.title if entry.book else "—" }}</td>
+          <td>
+            <form method="post" action="/vocabulary/delete/{{ entry.id }}">
+              <button type="submit">Remover</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>Nenhuma palavra salva ainda.</p>
+{% endif %}
+{% endblock %}

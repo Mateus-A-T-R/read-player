@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ book.title }} — Read Player{% endblock %}
+
+{% block content %}
+<h1>{{ book.title }}</h1>
+{% if book.author %}<p><em>{{ book.author }}</em></p>{% endif %}
+
+<div id="reader-text" data-book-id="{{ book.id }}">
+  {% for paragraph in book.content.split('\n') %}
+    {% if paragraph.strip() %}
+      <p>{{ paragraph }}</p>
+    {% endif %}
+  {% endfor %}
+</div>
+
+<div id="tooltip" style="display:none;position:absolute;background:#fff;border:1px solid #ccc;padding:8px;border-radius:4px;">
+  <span id="tooltip-word"></span>: <strong id="tooltip-translation"></strong>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/reader.js"></script>
+{% endblock %}

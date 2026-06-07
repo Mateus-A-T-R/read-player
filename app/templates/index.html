@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Home — Read Player{% endblock %}
+
+{% block content %}
+<h1>Read Player</h1>
+<p>Selecione um livro para começar a ler.</p>
+
+{% if books %}
+  <ul>
+    {% for book in books %}
+      <li><a href="/reader/{{ book.id }}">{{ book.title }}</a> {% if book.author %}— {{ book.author }}{% endif %}</li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>Nenhum livro na biblioteca. <a href="/library">Adicionar livro</a>.</p>
+{% endif %}
+{% endblock %}

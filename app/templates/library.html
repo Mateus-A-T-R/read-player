@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Biblioteca — Read Player{% endblock %}
+
+{% block content %}
+<h1>Biblioteca</h1>
+
+<form method="post" action="/library/add">
+  <input type="text" name="title" placeholder="Título" required>
+  <input type="text" name="author" placeholder="Autor">
+  <select name="language">
+    <option value="en">Inglês</option>
+    <option value="es">Espanhol</option>
+    <option value="fr">Francês</option>
+  </select>
+  <textarea name="content" placeholder="Cole o texto aqui..." required></textarea>
+  <button type="submit">Adicionar</button>
+</form>
+
+<hr>
+
+{% if books %}
+  <ul>
+    {% for book in books %}
+      <li>
+        <a href="/reader/{{ book.id }}">{{ book.title }}</a>
+        {% if book.author %} — {{ book.author }}{% endif %}
+        <form method="post" action="/library/delete/{{ book.id }}" style="display:inline">
+          <button type="submit">Remover</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>Nenhum livro ainda.</p>
+{% endif %}
+{% endblock %}
