@@ -11,6 +11,7 @@ class TextModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), nullable=False)
     content = Column(Text, nullable=False)
+    pdf_path = Column(String(500), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 

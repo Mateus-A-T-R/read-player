@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ text.title }} — Read Player{% endblock %}
+
+{% block content %}
+<h1>{{ text.title }}</h1>
+
+<div id="pdf-viewer" data-url="/uploads/{{ text.pdf_path }}">
+  <p id="pdf-loading">Carregando PDF...</p>
+  <div id="pdf-container"></div>
+</div>
+
+<div id="popup">
+  <div id="popup-info">
+    <span id="popup-word"></span>
+    <span id="popup-translation"></span>
+  </div>
+  <div id="popup-actions">
+    <button id="btn-save">Salvar</button>
+    <button id="btn-known">Conhecida</button>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="/static/reader_pdf.js"></script>
+{% endblock %}

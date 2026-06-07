@@ -11,6 +11,18 @@ from app.routes import library, reader, vocabulary
 
 Base.metadata.create_all(bind=engine)
 
+
+def _migrate():
+    from sqlalchemy import inspect, text
+    with engine.connect() as conn:
+        cols = [c["name"] for c in inspect(engine).get_columns("texts")]
+        if "pdf_path" not in cols:
+            conn.execute(text("ALTER TABLE texts ADD COLUMN pdf_path VARCHAR(500)"))
+            conn.commit()
+
+
+_migrate()
+
 app = FastAPI(title="Read Player")
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
